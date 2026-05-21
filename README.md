@@ -113,6 +113,16 @@ android-signing.properties
 build-android-release/DigitalCalendarAndroid-release.apk
 ```
 
+## 配布
+
+配布用 APK は GitHub Releases からダウンロードできます。
+
+```text
+DigitalCalendarAndroid-release.apk
+```
+
+GitHub Actions の artifact からも、debug APK と署名付き release APK を取得できます。
+
 ## GitHub Actions
 
 `.github/workflows/build.yml` で Android APK をビルドします。
