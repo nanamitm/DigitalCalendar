@@ -4,6 +4,7 @@ param(
     [string]$QtRoot = "C:\Qt",
     [string]$AndroidSdkRoot = "$env:LOCALAPPDATA\Android\Sdk",
     [string]$JavaHome = "C:\Program Files\Android\Android Studio\jbr",
+    [string]$HostQtPath = "",
     [string]$CMakePath = "",
     [string]$NinjaPath = ""
 )
@@ -33,6 +34,19 @@ if (!(Test-Path $storeFile)) {
 }
 
 $qtPrefix = Join-Path $QtRoot "$QtVersion\android_arm64_v8a"
+$hostQtCandidates = @(
+    (Join-Path $QtRoot "$QtVersion\mingw_64"),
+    (Join-Path $QtRoot "$QtVersion\msvc2022_64"),
+    (Join-Path $QtRoot "$QtVersion\llvm-mingw_64")
+)
+if (!$HostQtPath) {
+    foreach ($candidate in $hostQtCandidates) {
+        if (Test-Path "$candidate\lib\cmake\Qt6\Qt6Config.cmake") {
+            $HostQtPath = $candidate
+            break
+        }
+    }
+}
 $cmake = if ($CMakePath) { $CMakePath } elseif (Test-Path "$QtRoot\Tools\CMake_64\bin\cmake.exe") { "$QtRoot\Tools\CMake_64\bin\cmake.exe" } else { "cmake.exe" }
 $ninja = if ($NinjaPath) { $NinjaPath } elseif (Test-Path "$QtRoot\Tools\Ninja\ninja.exe") { "$QtRoot\Tools\Ninja\ninja.exe" } else { "ninja.exe" }
 $env:JAVA_HOME = $JavaHome
@@ -52,14 +66,23 @@ if (!(Test-Path $env:ANDROID_NDK_ROOT)) {
     throw "Android NDK not found: $env:ANDROID_NDK_ROOT"
 }
 
-& $cmake -S android -B $buildDir -G Ninja `
-    -DCMAKE_TOOLCHAIN_FILE="$qtPrefix\lib\cmake\Qt6\qt.toolchain.cmake" `
-    -DANDROID_ABI=arm64-v8a `
-    -DANDROID_PLATFORM=latest `
-    -DANDROID_SDK_ROOT="$env:ANDROID_SDK_ROOT" `
-    -DANDROID_NDK_ROOT="$env:ANDROID_NDK_ROOT" `
-    -DCMAKE_MAKE_PROGRAM="$ninja" `
-    -DCMAKE_BUILD_TYPE=Release
+$configureArgs = @(
+    "-S", "android",
+    "-B", $buildDir,
+    "-G", "Ninja",
+    "-DCMAKE_TOOLCHAIN_FILE=$qtPrefix\lib\cmake\Qt6\qt.toolchain.cmake",
+    "-DANDROID_ABI=arm64-v8a",
+    "-DANDROID_PLATFORM=latest",
+    "-DANDROID_SDK_ROOT=$env:ANDROID_SDK_ROOT",
+    "-DANDROID_NDK_ROOT=$env:ANDROID_NDK_ROOT",
+    "-DCMAKE_MAKE_PROGRAM=$ninja",
+    "-DCMAKE_BUILD_TYPE=Release"
+)
+if ($HostQtPath) {
+    $configureArgs += "-DQT_HOST_PATH=$HostQtPath"
+}
+
+& $cmake @configureArgs
 
 $gradleReleaseApk = ".\$buildDir\android-build\build\outputs\apk\release\android-build-release.apk"
 $releaseApk = ".\$buildDir\DigitalCalendarAndroid-release.apk"
