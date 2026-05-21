@@ -36,8 +36,6 @@ jobs:
           sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;$env:ANDROID_NDK_VERSION"
 
       - name: Install Qt for Android
-        id: install-qt
-        continue-on-error: true
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{ env.QT_VERSION }}
@@ -46,13 +44,7 @@ jobs:
           arch: android_arm64_v8a
           dir: C:\Qt
           cache: true
-
-      - name: Retry Qt install
-        if: ${{ steps.install-qt.outcome == 'failure' }}
-        shell: pwsh
-        run: |
-          python -m pip install --upgrade "aqtinstall==3.3.*"
-          python -m aqt install-qt windows android $env:QT_VERSION android_arm64_v8a --autodesktop --outputdir $env:QT_ROOT
+          extra: --UNSAFE-ignore-hash
 
       - name: Build debug APK
         shell: pwsh
