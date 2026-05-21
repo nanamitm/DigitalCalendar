@@ -101,7 +101,7 @@ foreach ($path in $stalePaths) {
     }
 }
 
-$buildOutput = & $cmake --build $buildDir 2>&1
+& $cmake --build $buildDir
 $buildExitCode = $LASTEXITCODE
 
 if (Test-Path $gradleReleaseApk) {
@@ -110,7 +110,6 @@ if (Test-Path $gradleReleaseApk) {
     exit 0
 }
 
-$buildOutput | Write-Output
 if ($buildExitCode -ne 0) {
     throw "Release build failed with exit code $buildExitCode."
 }

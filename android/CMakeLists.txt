@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
+qt_policy(SET QTP0002 NEW)
 
 qt_add_executable(DigitalCalendarAndroid
     src/main.cpp

@@ -14,6 +14,7 @@ jobs:
   android:
     name: Android APK
     runs-on: windows-latest
+    timeout-minutes: 45
     env:
       HAS_ANDROID_SIGNING: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_STORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
 

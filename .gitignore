@@ -1,6 +1,7 @@
 build/
 build-*/
 android_probe/
+.claude/
 keystore/
 android-signing.properties
 *.keystore

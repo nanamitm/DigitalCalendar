@@ -77,7 +77,7 @@ foreach ($path in $stalePaths) {
     }
 }
 
-$buildOutput = & $cmake --build $buildDir 2>&1
+& $cmake --build $buildDir
 $buildExitCode = $LASTEXITCODE
 
 if (Test-Path $qtDebugApk) {
@@ -91,7 +91,6 @@ if (Test-Path $gradleDebugApk) {
     exit 0
 }
 
-$buildOutput | Write-Output
 if ($buildExitCode -ne 0) {
     throw "Debug build failed with exit code $buildExitCode."
 }
