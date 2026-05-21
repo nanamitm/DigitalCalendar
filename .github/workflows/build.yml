@@ -43,7 +43,7 @@ jobs:
       - name: Install Qt for Android
         shell: pwsh
         run: |
-          python -m pip install --upgrade "aqtinstall==3.3.*" "py7zr==1.0.*"
+          python -m pip install --upgrade --pre "aqtinstall>=3.3.1.dev0" "py7zr==1.0.*"
           python -m aqt -c .\.github\aqt-settings.ini install-qt windows android $env:QT_VERSION android_arm64_v8a --autodesktop --outputdir $env:QT_ROOT --UNSAFE-ignore-hash
 
       - name: Build debug APK
