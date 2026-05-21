@@ -44,7 +44,7 @@ jobs:
           arch: android_arm64_v8a
           dir: C:\Qt
           cache: true
-          extra: --UNSAFE-ignore-hash
+          extra: --base https://download.qt.io --UNSAFE-ignore-hash
 
       - name: Build debug APK
         shell: pwsh
