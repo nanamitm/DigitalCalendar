@@ -157,6 +157,8 @@ ANDROID_KEY_PASSWORD
 
 Secrets がすべて設定されている場合だけ、Actions は署名付き release APK も作成して artifact にアップロードします。
 
+`v0.1.0` のような `v*` タグを push した場合は、Actions が GitHub Release を作成または更新し、Windows ZIP と Android APK を添付します。
+
 ## ライセンス
 
 MIT License
