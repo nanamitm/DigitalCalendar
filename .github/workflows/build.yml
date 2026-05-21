@@ -7,6 +7,7 @@ on:
 
 env:
   QT_VERSION: 6.11.1
+  QT_ROOT: C:\Qt\Qt
   ANDROID_NDK_VERSION: 27.2.12479018
 
 jobs:
@@ -35,6 +36,8 @@ jobs:
           sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;$env:ANDROID_NDK_VERSION"
 
       - name: Install Qt for Android
+        id: install-qt
+        continue-on-error: true
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{ env.QT_VERSION }}
@@ -42,6 +45,14 @@ jobs:
           target: android
           arch: android_arm64_v8a
           dir: C:\Qt
+          cache: true
+
+      - name: Retry Qt install
+        if: ${{ steps.install-qt.outcome == 'failure' }}
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade "aqtinstall==3.3.*"
+          python -m aqt install-qt windows android $env:QT_VERSION android_arm64_v8a --autodesktop --outputdir $env:QT_ROOT
 
       - name: Build debug APK
         shell: pwsh
@@ -49,7 +60,7 @@ jobs:
           .\build_android.ps1 `
             -QtVersion $env:QT_VERSION `
             -NdkVersion $env:ANDROID_NDK_VERSION `
-            -QtRoot C:\Qt `
+            -QtRoot $env:QT_ROOT `
             -AndroidSdkRoot $env:ANDROID_HOME `
             -JavaHome $env:JAVA_HOME
 
@@ -99,7 +110,7 @@ jobs:
           .\build_android_release.ps1 `
             -QtVersion $env:QT_VERSION `
             -NdkVersion $env:ANDROID_NDK_VERSION `
-            -QtRoot C:\Qt `
+            -QtRoot $env:QT_ROOT `
             -AndroidSdkRoot $env:ANDROID_HOME `
             -JavaHome $env:JAVA_HOME
 
