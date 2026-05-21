@@ -2,6 +2,9 @@ build/
 build-*/
 android_probe/
 .claude/
+.qtcreator/
+android/.qtcreator/
+release-artifacts/
 keystore/
 android-signing.properties
 *.keystore
