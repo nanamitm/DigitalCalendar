@@ -6,7 +6,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$readelf = "$env:LOCALAPPDATA\Android\Sdk\ndk\$NdkVersion\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-readelf.exe"
+$androidSdkRoot = if ($env:ANDROID_HOME) {
+    $env:ANDROID_HOME
+} elseif ($env:ANDROID_SDK_ROOT) {
+    $env:ANDROID_SDK_ROOT
+} else {
+    "$env:LOCALAPPDATA\Android\Sdk"
+}
+$readelf = Join-Path $androidSdkRoot "ndk\$NdkVersion\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-readelf.exe"
 $apkName = [System.IO.Path]::GetFileNameWithoutExtension($Apk)
 $extractDir = ".\build-android\check-16kb\$apkName"
 
