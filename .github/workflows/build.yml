@@ -1,0 +1,124 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  QT_VERSION: 6.11.1
+  ANDROID_NDK_VERSION: 27.2.12479018
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: windows-latest
+    env:
+      HAS_ANDROID_SIGNING: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_STORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
+        shell: pwsh
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;$env:ANDROID_NDK_VERSION"
+
+      - name: Install Qt for Android
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: android
+          arch: android_arm64_v8a
+          dir: C:\Qt
+
+      - name: Build debug APK
+        shell: pwsh
+        run: |
+          .\build_android.ps1 `
+            -QtVersion $env:QT_VERSION `
+            -NdkVersion $env:ANDROID_NDK_VERSION `
+            -QtRoot C:\Qt `
+            -AndroidSdkRoot $env:ANDROID_HOME `
+            -JavaHome $env:JAVA_HOME
+
+      - name: Check debug APK 16 KB alignment
+        shell: pwsh
+        run: |
+          .\check_android_16kb.ps1 `
+            -ApkPath .\build-android\DigitalCalendarAndroid-debug.apk `
+            -NdkVersion $env:ANDROID_NDK_VERSION
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DigitalCalendarAndroid-debug
+          path: build-android/DigitalCalendarAndroid-debug.apk
+
+      - name: Prepare release signing
+        if: ${{ env.HAS_ANDROID_SIGNING == 'true' }}
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          New-Item -ItemType Directory -Force -Path .\keystore | Out-Null
+          [System.IO.File]::WriteAllBytes(
+            (Resolve-Path .\keystore).Path + "\digitalcalendar-release.jks",
+            [System.Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64)
+          )
+          @"
+          storeFile=.\keystore\digitalcalendar-release.jks
+          storePassword=$env:ANDROID_STORE_PASSWORD
+          keyAlias=$env:ANDROID_KEY_ALIAS
+          keyPassword=$env:ANDROID_KEY_PASSWORD
+          "@ | Set-Content -Encoding utf8NoBOM -Path .\android-signing.properties
+
+      - name: Build signed release APK
+        if: ${{ env.HAS_ANDROID_SIGNING == 'true' }}
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          .\build_android_release.ps1 `
+            -QtVersion $env:QT_VERSION `
+            -NdkVersion $env:ANDROID_NDK_VERSION `
+            -QtRoot C:\Qt `
+            -AndroidSdkRoot $env:ANDROID_HOME `
+            -JavaHome $env:JAVA_HOME
+
+      - name: Check release APK 16 KB alignment
+        if: ${{ env.HAS_ANDROID_SIGNING == 'true' }}
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          .\check_android_16kb.ps1 `
+            -ApkPath .\build-android-release\DigitalCalendarAndroid-release.apk `
+            -NdkVersion $env:ANDROID_NDK_VERSION
+
+      - name: Upload signed release APK
+        if: ${{ env.HAS_ANDROID_SIGNING == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: DigitalCalendarAndroid-release
+          path: build-android-release/DigitalCalendarAndroid-release.apk
