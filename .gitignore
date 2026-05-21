@@ -1,6 +1,7 @@
 build/
 build-*/
 android_probe/
+dist/
 .claude/
 .qtcreator/
 android/.qtcreator/

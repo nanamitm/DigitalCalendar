@@ -62,6 +62,18 @@ Android 版:
 .\run.ps1
 ```
 
+配布用 ZIP を作成:
+
+```powershell
+.\package_windows.ps1
+```
+
+生成物:
+
+```text
+dist/DigitalCalendar-windows.zip
+```
+
 ## Android debug APK
 
 ```powershell
@@ -122,12 +134,13 @@ DigitalCalendarAndroid-release.apk
 ```
 
 GitHub Actions の artifact からも、debug APK と署名付き release APK を取得できます。
+Windows 版は `DigitalCalendar-windows.zip` として artifact にアップロードされます。
 
 ## GitHub Actions
 
 `.github/workflows/build.yml` で Android APK をビルドします。
 
-通常の push / pull request では debug APK を作成し、artifact としてアップロードします。署名付き release APK も作りたい場合は、GitHub repository secrets に次を設定します。
+通常の push / pull request では Windows ZIP と Android debug APK を作成し、artifact としてアップロードします。署名付き Android release APK も作りたい場合は、GitHub repository secrets に次を設定します。
 
 ```text
 ANDROID_KEYSTORE_BASE64
