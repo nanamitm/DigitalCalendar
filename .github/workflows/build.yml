@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -44,7 +44,7 @@ jobs:
             -MingwBin "$env:QT_ROOT\Tools\mingw1310_64\bin"
 
       - name: Upload Windows ZIP
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: DigitalCalendar-windows
           path: dist/DigitalCalendar-windows.zip
@@ -58,10 +58,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -72,7 +72,7 @@ jobs:
           python-version: "3.12"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install Android packages
         shell: pwsh
@@ -103,7 +103,7 @@ jobs:
             -NdkVersion $env:ANDROID_NDK_VERSION
 
       - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: DigitalCalendarAndroid-debug
           path: build-android/DigitalCalendarAndroid-debug.apk
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload signed release APK
         if: ${{ env.HAS_ANDROID_SIGNING == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: DigitalCalendarAndroid-release
           path: build-android-release/DigitalCalendarAndroid-release.apk
@@ -175,7 +175,7 @@ jobs:
 
     steps:
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-artifacts
           merge-multiple: true
